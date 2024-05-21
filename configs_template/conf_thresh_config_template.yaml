@@ -1,0 +1,32 @@
+config_type: RunConfig
+
+########## Wandb init parameters ##########
+### Wandb parameters of the init function as a dict of kwargs that will be deserialized with **. It should 
+### follow the wandb nomenclature.
+# Optional[dict[str, Any]] - Default to {}.
+wandb_init_params: null
+
+
+tasks:
+
+    confidence_thresholding_task:
+        task_type: confidence_thresholding
+        inputs: predictions:inputs_directory,gts:inputs_directory:test
+
+        config:
+            ########## Threshold parameter ##########
+            ### Float being the threshold value or Dict listing the threshold per label.
+            # dict[int, float] | dict[str, float] | float
+            threshold:
+                1: 0.1
+                2: 0.2
+                3: 0.25
+
+            ########## Paths ##########
+            ### Path to the predictions dataframe (csv).
+            # Optional[str]
+            predictions_path:
+            ### Path to the gts dataframe (csv).
+            # Optional[str]
+            gts_path:
+

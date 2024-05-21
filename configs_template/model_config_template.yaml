@@ -1,0 +1,53 @@
+config_type: ModelConfig
+
+########## Core model parameters ##########
+### Model name to use. Choose 'retinanet'.
+# Literal["retinanet"]
+model: 
+    model_type: "retinanet"
+
+    ### All model parameters as a kwargs in a dict that will be deserialized with **.
+    # Optional[dict[str, list[float] | tuple[float]]] - Default to {anchors_params...}.
+    parameters:
+        # list[float] | tuple[float]
+        anchors_sizes: [16, 32, 64, 128, 256]
+        # list[float] | tuple[float]
+        anchors_scales: [1.0, 1.33, 1.66]
+        # list[float] | tuple[float]
+        anchors_ratios: [0.5, 1.0, 2.0]
+
+        ### Type of norm layer.
+        # Optional[Literal["BatchNorm2d", "FrozenBatchNorm2d"]] - Default to "FrozenBatchNorm2d".
+        norm_layer: "FrozenBatchNorm2d"
+
+        ########## Head-outputs process parameters for evaluation ##########
+        ### Boolean telling the model if it should process detections during training.
+        # Optional[bool] - Default to True.
+        process_detections_during_training: true
+        ### The minimal confidence score that a prediction should have to be considered positive.
+        # Optional[float] - Default to 0.01.
+        score_thresh: 0.01
+        ### The iou value from which NMS consider bboxes to be overlapping.
+        # Optional[float] - Default to 0.7.
+        nms_iou_thresh: 0.4
+        ### The number of candidate to consider per pyramid level.
+        # Optional[int] - Default to 500.
+        topk_candidates: 200
+        ### The number max of detection per image.
+        # Optional[int] - Default to 300.
+        nb_max_detections_per_img: 100
+
+
+### Model loading type if the user wants to load weights. Choose between: "model" or "model_state_dict".
+# Optional[Literal["model", "model_state_dict"] | None] - Default to None.
+model_loading_type: null
+### Path where to find the model weights to load.
+# str | None - Default to None.
+saved_checkpoint_path: null
+### Type of weights to load. Choose 'imagenet'.
+# Optional[Literal['imagenet'] | None] - Default to 'imagenet'.
+weights_backbone: imagenet
+
+### Number of layers to retrain on the backbone.
+# Optional[Literal[0, 1, 2, 3, 4, 5]] - Default to 5.
+trainable_backbone_layers: 5

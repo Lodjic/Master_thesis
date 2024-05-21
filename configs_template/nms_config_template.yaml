@@ -1,0 +1,31 @@
+config_type: RunConfig
+
+########## Wandb init parameters ##########
+### Wandb parameters of the init function as a dict of kwargs that will be deserialized with **. It should 
+### follow the wandb nomenclature.
+# Optional[dict[str, Any]] - Default to {}.
+wandb_init_params: null
+
+
+tasks:
+
+    nms_task:
+        task_type: nms
+        inputs: predictions:inputs_directory
+
+        config:
+            ########## Threshold parameter ##########
+            ### Float being the iou threshold value above which bboxes are merged.
+            # float
+            nms_iou_threshold: 0.4
+
+            ########## Paths ##########
+            ### Path to the predictions dataframe (csv).
+            # Optional[str]
+            predictions_path:
+
+            ########## Tqdm ##########
+            ### Parameter to disable tqdm
+            # Optional[bool | None] - Default to None.
+            disable_tqdm: null
+

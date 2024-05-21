@@ -1,0 +1,202 @@
+config_type: RunConfig
+
+########## Wandb init parameters ##########
+### Wandb parameters of the init function as a dict of kwargs that will be deserialized with **. It should 
+### follow the wandb nomenclature.
+# Optional[dict[str, Any]] - Default to {}.
+wandb_init_params:
+    project: train
+    name: train-0
+    id: train-0
+    resume: allow
+
+
+tasks:
+
+    train_task:
+        task_type: train
+        inputs: dataset:inputs_directory
+
+        config:
+            ###############################################
+            ########## Initialize fct parameters ##########
+            ###############################################
+
+            ########## Seed ##########
+            ### Seed used to generate random number. If fixed, it makes results reproducible.
+            # Optional[int | float] - Default to None.
+            manual_seed: null
+
+            ########## Dataloader parameters ##########
+            ### Images extension to search for in the dataset root directory.
+            # Optional[str] - Default to '.png'.
+            images_extension: .png
+            ### Batch size for the training.
+            # int
+            batch_size: 32
+
+            ########## Optimizer parameters ##########
+            ### Optimizer to use during training. It should follow the torch nomenclature. Choose 'Adam'.
+            # Optional[Literal("Adam")] - Default to 'Adam'.
+            optimizer: Adam
+            ### Optimizer parameters passed as a dict of kwargs that will be deserialized with **. It should follow the
+            ### PyTorch nomenclature.
+            # Optional[dict[str, Any]] - Default to {'lr': 1e-5}.
+            optimizer_params:
+                lr: 0.00001
+
+            ########## LR scheduler parameters ##########
+            ### Learning rate scheduler type. It should follow the PyTorch nomenclature. Choose between: 
+            ### 'ReduceLROnPlateau' and None.
+            # Optional[Literal['ReduceLROnPlateau'] | None] - Default to None.
+            lr_scheduler: null
+            ### Learning rate scheduler parameters as dict of kwargs that will be deserialized with **. It should 
+            ### follow the PyTorch nomenclature.
+            # Optional[dict[str, Any]] - Default to {}.
+            lr_scheduler_params: null
+
+
+            ##########################################
+            ########## Train fct parameters ##########
+            ##########################################
+
+            ########## Training parameters ##########
+            ### Number of epochs on which to train the model.
+            # int
+            n_epochs: 30
+            ### The reduction factor by which focal_loss_weight or regression_loss_weight will be multiplied. 
+            ### Ex: loss_reduction_factor=4 => w_focal_loss=1 and w_reg_loss=1/4 or w_focal_loss=1/4 and w_reg_loss=1.
+            # Optional[Annotated[float, Field(ge=0.1, le=10)]] - Default to 1.0.
+            loss_reduction_factor: 1.0
+            ### Sign indicating which loss will be reduced over the other: -1 indicates the reduction of the focal_loss,
+            ### while 1 indicates the reduction of the regression_loss.
+            ### Ex: loss_reduction_factor=4 and loss_reduction_sign_indicator=-1 => w_focal_loss=1/4 and w_reg_loss=1
+            # Optional[Literal[-1, 1]] - Default to 1.
+            loss_reduction_sign_indicator: 1
+
+
+            ########## Matching parameters ##########
+            ### The iou value from which we consider that the detection matches the GT bbox.
+            # Optional[float] - Default to 0.1.
+            matching_iou_threshold: 0.1
+
+            ########## Wandb logging parameter ##########
+            ### Whether to log model_checkpoint to wandb or not.
+            # Optional[bool] - Default to True.
+            wandb_log_model_checkpoint: True
+
+            ########## Saving parameters ##########
+            ### The way the model is saved wheter the whole model, whether only the weights or both of them.
+            # Optional[Literal['model', 'model_state_dict', 'both']] - Default to 'model_state_dict'.
+            model_saving_type: model_state_dict
+            ### Whether to save the optimizer_sate_dict in the checkpoint or not.
+            # Optional[bool] - Default to True.
+            save_optimizer: True
+            ### The frequency at which to save the model weights. -1 means no saving.
+            # Optional[int] - Default to -1.
+            saving_frequency: 1
+            ### The metric used to evaluate the model's checkpoints to identify the best one to save.
+            # Optional[str | None] - Default to "val.loss"
+            checkpoint_scoring_metric: val.loss
+            ### Indicates whether the metric used to evaluate the model's checkpoints should be maximized or minimized.
+            # Optional[Literal["min", "max"] | None] - Default to "min"
+            checkpoint_scoring_order: min
+            ### The file name to give to the model backups.
+            # Optional[str] - Default  to 'model'.
+            checkpoint_file_name: retinanet
+
+            ########## Tqdm ##########
+            ### Parameter to disable the display of the epoch progress bar
+            # Optional[bool | None] - Default to None.
+            disable_epoch_tqdm: True
+            ### Parameter to disable the display of the batch progress bar
+            # Optional[bool | None] - Default to None.
+            disable_batch_tqdm: null
+
+
+    predict_task:
+        task_type: predict
+        inputs: dataset:inputs_directory:test,model_state_dict:train_task:best
+
+        config:
+            ########## Dataloader parameters ##########
+            ### Images extension to search for in the dataset root directory.
+            # Optional[str] - Default to '.png'.
+            images_extension: .png
+            ### Batch size for the training.
+            # int
+            batch_size: 32
+
+
+    confidence_thresholding_task:
+        task_type: confidence_thresholding
+        inputs: predictions:predict_task,gts:inputs_directory:test
+
+        config:
+            ########## Threshold parameter ##########
+            ### Float being the threshold value or Dict listing the threshold per label.
+            # dict[int, float] | dict[str, float] | float
+            threshold: 
+                plane-civilSmall: 0.2
+                plane-civilMedium: 0.2
+                plane-civilLarge: 0.2
+        
+            ########## Paths ##########
+            ### Path to the predictions dataframe (csv).
+            # Optional[str]
+            # predictions_path:
+            ### Path to the gts dataframe (csv).
+            # Optional[str]
+            # gts_path:
+
+
+    nms_task:
+        task_type: nms
+        inputs: predictions:confidence_thresholding_task
+
+        config:
+            ########## Threshold parameter ##########
+            ### Float being the iou threshold value above which bboxes are merged.
+            # float
+            nms_iou_threshold: 0.7
+
+            ########## Paths ##########
+            ### Path to the predictions dataframe (csv).
+            # Optional[str]
+            # predictions_path:
+
+            ########## Tqdm ##########
+            ### Parameter to disable tqdm
+            # Optional[bool | None] - Default to None.
+            disable_tqdm: True
+
+
+    eval_task:
+        task_type: eval
+        inputs: gts:inputs_directory:test,predictions:nms_task
+
+        config:
+            ########## Matching parameter ##########
+            ### IOU threshold from which predictions and gts are considered a match.
+            # float - Default to 0.5.
+            matching_iou_threshold: 0.5
+
+            ########## Custom metrics ##########
+            ### Dictionary specifying the custom metrics to compute
+            # Optional[dict[str, str] | None] - Default to None.
+            custom_metrics: 
+                # super_metric: 0.6 * [level1.recall] + 0.4 * [level1.f1]
+                # super_metric: (0.6 * [level2.plane-civilSmall.recall] + 0.4 * [level2.plane-civilSmall.f1] + 0.6 * [level2.plane-civilMedium.recall] + 0.4 * [level2.plane-civilMedium.f1] + 0.6 * [level2.plane-civilLarge.recall] + 0.4 * [level2.plane-civilLarge.f1]) / 3
+
+            ########## Paths ##########
+            ### Path to the predictions dataframe (csv).
+            # Optional[str]
+            # predictions_path:
+            ### Path to the gts dataframe (csv).
+            # Optional[str]
+            # gts_path:
+
+            ########## Tqdm ##########
+            ### Parameter to disable tqdm
+            # Optional[bool | None] - Default to None.
+            disable_tqdm: True

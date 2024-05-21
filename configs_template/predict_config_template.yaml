@@ -1,0 +1,23 @@
+config_type: RunConfig
+
+########## Wandb init parameters ##########
+### Wandb parameters of the init function as a dict of kwargs that will be deserialized with **. It should 
+### follow the wandb nomenclature.
+# Optional[dict[str, Any]] - Default to {}.
+wandb_init_params: null
+
+
+tasks:
+
+    predict_task:
+        task_type: predict
+        inputs: dataset:inputs_directory
+
+        config:
+            ########## Dataloader parameters ##########
+            ### Images extension to search for in the dataset root directory.
+            # Optional[str] - Default to '.png'.
+            images_extension: .png
+            ### Batch size for the training.
+            # int
+            batch_size: 2

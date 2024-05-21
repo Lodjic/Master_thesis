@@ -1,0 +1,39 @@
+config_type: RunConfig
+
+########## Wandb init parameters ##########
+### Wandb parameters of the init function as a dict of kwargs that will be deserialized with **. It should 
+### follow the wandb nomenclature.
+# Optional[dict[str, Any]] - Default to {}.
+wandb_init_params: null
+
+
+tasks:
+
+    eval_task:
+        task_type: eval
+        inputs: dataset:inputs_directory:test,predictions:inputs_directory
+
+        config:
+            ########## Matching parameter ##########
+            ### IOU threshold from which predictions and gts are considered a match.
+            # float - Default to 0.5.
+            matching_iou_threshold: 0.5
+
+            ########## Custom metrics ##########
+            ### Dictionary specifying the custom metrics to compute
+            # Optional[dict[str, str] | None] - Default to None.
+            custom_metrics: 
+                super_metric: 0.6 * [level1.recall] + 0.4 * [level1.f1]
+
+            ########## Paths ##########
+            ### Path to the predictions dataframe (csv).
+            # Optional[str]
+            predictions_path:
+            ### Path to the gts dataframe (csv)
+            # Optional[str]
+            gts_path:
+
+            ########## Tqdm ##########
+            ### Parameter to disable tqdm
+            # Optional[bool | None] - Default to None.
+            disable_tqdm: null
